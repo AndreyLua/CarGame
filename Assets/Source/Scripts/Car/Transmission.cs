@@ -25,6 +25,8 @@ public class Transmission : MonoBehaviour
     private Dictionary<WheelsQuadPositionId, Wheel> _wheels;
     private float _brakeTimer = 0;
     private Vector3 _brakeSpeed;
+    private float _wheelRotationTimer = 0;
+    private float _eversionRealAngle = 0;
 
     public float Length => _length;
     public float Width => _width;
@@ -75,6 +77,13 @@ public class Transmission : MonoBehaviour
         {
             _brakeTimer = 0;
         }
+
+        if (_wheelRotationTimer<1)
+        {
+            _wheelRotationTimer += Time.deltaTime;
+            _eversionRealAngle = Mathf.Lerp(_eversionRealAngle, _eversionAngle, _wheelRotationTimer);
+            RotateFrontWheels();
+        }
         UpdateWheelVisualization(_wheels[WheelsQuadPositionId.FrontRight].WheelCollider, _wheels[WheelsQuadPositionId.FrontRight].Skin, false);
         UpdateWheelVisualization(_wheels[WheelsQuadPositionId.FrontLeft].WheelCollider, _wheels[WheelsQuadPositionId.FrontLeft].Skin, true);
         UpdateWheelVisualization(_wheels[WheelsQuadPositionId.RearRight].WheelCollider, _wheels[WheelsQuadPositionId.RearRight].Skin, false);
@@ -83,6 +92,7 @@ public class Transmission : MonoBehaviour
 
     private void ChangeTransmissionAngle()
     {
+        _wheelRotationTimer = 0;
         switch (_state)
         {
             case TransmissionAngleState.Forward:
@@ -101,13 +111,12 @@ public class Transmission : MonoBehaviour
                 _rearFrictionForce = -transform.right * _rearFriction * _weightRearWheel;
                 break;
         }
-        RotateFrontWheels();
     }
 
     private void RotateFrontWheels()
     {
-        _wheels[WheelsQuadPositionId.FrontRight].WheelCollider.steerAngle =_eversionAngle;
-        _wheels[WheelsQuadPositionId.FrontLeft].WheelCollider.steerAngle =_eversionAngle;
+        _wheels[WheelsQuadPositionId.FrontRight].WheelCollider.steerAngle =_eversionRealAngle;
+        _wheels[WheelsQuadPositionId.FrontLeft].WheelCollider.steerAngle = _eversionRealAngle;
     }
 
     private void UpdateWheelVisualization(WheelCollider collider, Transform visualization, bool isLeftWheel)
